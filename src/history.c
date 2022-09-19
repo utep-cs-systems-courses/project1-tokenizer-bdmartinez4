@@ -47,7 +47,7 @@ void add_history(List *list, char *str) {
 char *get_history(List *list, int i) {
   Item *current_item = list->root;
   while(current_item) {
-    if(current_item->id == i) {
+    if(current_item->id == i + 1) {
       return current_item->str;
     }
     current_item = current_item->next;
