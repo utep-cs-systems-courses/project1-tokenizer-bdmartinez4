@@ -1,0 +1,105 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "tokenizer.h"
+#include "history.h"
+
+//Returns true (1) if char is a space or blank
+int space_char(char c) {
+  return (c == ' ' || c == '\t') && c != '\0';
+}
+//Returns true (1) if char is not a space or blank
+int non_space_char(char c) {
+  return c != ' ' && c != '\t' && c != '\0';
+}
+//Returns a pointer to the start of the word in a string
+char *word_start(char *s) {
+  for(int i = 0; space_char(*s); s++) {
+  }
+  return s;
+}
+//Returns a pointer to the end of a word in a string
+char *word_terminator(char *word) {
+  int i = 0;
+  while(*(word + i)){
+    if(space_char(*(word + i))){
+      return word + i;
+    }
+    i++;
+  }
+  return word + i;
+}
+//Self-explanitory, returns the number of words in the string
+int count_words(char *s) {
+  int inWord = 0;
+  int count = 0;
+  while(*s != '\0') {
+    if(non_space_char(*s) && inWord == 0) {
+      count++;
+      inWord = 1;
+    }
+    else if(space_char(*s) == 1 && inWord == 1) {
+      inWord = 0;
+    }
+    s++;
+  }
+  return count;
+}
+
+//Copies the string to use in the tokenizer method
+char *copy_str(char *inStr, short len) {
+  //Allocates memory for the length of the string + 1 for the terminating character
+  char *out_str = (char*) malloc(sizeof(char) * len + 1);
+  //Error if out_str is empty
+  if(!out_str) {
+    fprintf(stderr, "copy_str: Memory allocation error!");
+    exit(EXIT_FAILURE);
+  }
+  char *c = out_str;
+  //Iterates through in_str and copies it over to out_str using c as a temp variable
+  for(short i = 0; i < len; i++) {
+    *c = *inStr;
+    if(*c == '\0') {
+      break;
+    }
+    c++;
+    inStr++;
+  }
+  *c = '\0';
+  return out_str;
+}
+
+char **tokenize(char* str) {
+  //Allocate memory for the tokens array by counting the words in the string
+  int words = count_words(str);
+  char **tokens = malloc(sizeof(char*) * (words + 1));
+  //Error if out_str is empty
+  if(!tokens) {
+    fprintf(stderr, "tokenize: Memory allocation error!");
+    exit(EXIT_FAILURE);
+  }
+  //This loop populates the token array by using the methods we wrote previously
+  str = word_start(str);
+  for(int i = 0; i < words; i++) {
+    char* terminator = word_terminator(str);
+    tokens[i] = copy_str(str, terminator - str);
+    str = word_start(terminator);
+  }
+  //Point the last pointer to 0
+  char **terminator = tokens + words;
+  *terminator = 0;
+  return tokens;
+}
+
+void print_tokens(char **tokens) {
+  for(char** token = tokens; *token != 0; token++) 
+    printf("\t[%ld] %s\n", token - tokens, *token);
+}
+
+void free_tokens(char **tokens) {
+  int i = 0;
+  while(tokens[i]) {
+    free(tokens[i]);
+    i++;
+  }
+  free(tokens);
+}
